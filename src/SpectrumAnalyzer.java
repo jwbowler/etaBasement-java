@@ -17,6 +17,8 @@ public class SpectrumAnalyzer extends Thread {
 	
 	private static final int MIN_NUM_SAMPLES_IN_UPDATE = 128; // wait until there are at least this many new samples in the
 														  // audio input stream before FFTing
+	
+	private static final int FFT_DELAY = 15;
 
 	private AudioInputStream stream;
 	private DoubleFFT_1D fftMachine = new DoubleFFT_1D(FFT_INPUT_SIZE);
@@ -91,8 +93,9 @@ public class SpectrumAnalyzer extends Thread {
 			
 			// System.out.println(count++);
 			//System.out.println("Time: " + (System.currentTimeMillis() - l));
-			//System.out.println(System.currentTimeMillis() - t);
-			//t = System.currentTimeMillis();
+			t = System.currentTimeMillis() - t;
+			try {Thread.sleep(Math.max(0, FFT_DELAY-t));} catch (Exception e){};
+			t = System.currentTimeMillis();
 		}
 	}
 	
