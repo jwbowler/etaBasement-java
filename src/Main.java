@@ -1,5 +1,8 @@
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -8,6 +11,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 
@@ -18,13 +22,43 @@ public class Main {
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 		
 		final SpectrumView spectrumView = new SpectrumView();
-		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream(), spectrumView);
+		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream());
+		
+		spectrumAnalyzer.attachConsumer(spectrumView);
+		
+		final ArrayList<Letter> letters = new ArrayList<>();
+		letters.add(new Letter(0, 15, 65));
+		letters.add(new Letter(0, 60, 140));
+		letters.add(new Letter(0, 120, 255));
+		
+		for (Letter l : letters)
+			spectrumAnalyzer.attachConsumer(l);
 		
 		SwingUtilities.invokeAndWait(new Runnable() {
 			public void run() {
 				frame = new JFrame();
+				frame.getContentPane().setBackground(Color.black);
+				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				
 				frame.setLayout(new FlowLayout());
 				frame.add(spectrumView);
+				
+				
+				JPanel vis = new JPanel(new GridLayout(1,3));
+				for (Letter l : letters)
+					vis.add(l.getIntensityVis());
+				
+				JPanel controllers = new JPanel(new GridLayout(0,1));
+				for (Letter l : letters)
+					controllers.add(l.getControllerPanel());
+
+				JPanel zbt = new JPanel(new GridLayout(0,1));
+				vis.setBackground(Color.BLACK);
+				controllers.setBackground(Color.BLACK);
+				zbt.add(vis);
+				zbt.add(controllers);
+				frame.add(zbt);
+				
 				frame.pack();
 				frame.setVisible(true);
 			}

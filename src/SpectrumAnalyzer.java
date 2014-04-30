@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.sound.sampled.AudioInputStream;
@@ -19,35 +20,47 @@ public class SpectrumAnalyzer extends Thread {
 
 	private AudioInputStream stream;
 	private DoubleFFT_1D fftMachine = new DoubleFFT_1D(FFT_INPUT_SIZE);
-	private SpectrumView view;
+	
+	private ArrayList<SpectrumConsumer> spectrumConsumers = new ArrayList<>();
 
 	private byte audioBuf8[] = new byte[FFT_INPUT_SIZE * 2]; // raw audio data, viewed as bytes
 	private ShortBuffer audioBuf16 = ByteBuffer.wrap(audioBuf8).order(ByteOrder.BIG_ENDIAN).asShortBuffer(); // raw audio data, viewed as 16-bit samples
 	private double fftBuf[] = new double[FFT_INPUT_SIZE]; // audio data converted to an array of doubles (FFT processes this in-place)
 	
-	public SpectrumAnalyzer(AudioInputStream stream, SpectrumView view) {
+	public SpectrumAnalyzer(AudioInputStream stream) {
 		this.stream = stream;
-		this.view = view;
 	}
 
 	@Override
 	public void run() {
 		
+		long t = 0;
+		long l = 0;
 		int count = 0;
 		while (true) {
-			
+
 			try {
 				int bytesRead = 0;
 				int available = stream.available();
 				
 				if (available < FFT_INPUT_SIZE) {
+					// System.out.println("ROLL");
+
 					// rotate the buffer
-					int numBytesToRead = Math.max(MIN_NUM_SAMPLES_IN_UPDATE, available);
+					//int numBytesToRead = Math.max(MIN_NUM_SAMPLES_IN_UPDATE, available);
+					int numBytesToRead = available;
 					int offset = FFT_INPUT_SIZE - numBytesToRead;
 					System.arraycopy(audioBuf8, numBytesToRead, audioBuf8, 0, offset);
+
+					// THIS OPERATION IS FUCKING SLOW JESUS
 					bytesRead = stream.read(audioBuf8, offset, numBytesToRead);
+					l = System.currentTimeMillis();
+
 					assert(bytesRead == numBytesToRead);
 				} else {
+					//System.out.println("FRESH");
+					l = System.currentTimeMillis();
+
 					// rewrite the whole buffer with the most recent bytes
 					stream.skip(available - FFT_INPUT_SIZE);
 					bytesRead = stream.read(audioBuf8, 0, FFT_INPUT_SIZE);
@@ -73,11 +86,24 @@ public class SpectrumAnalyzer extends Thread {
 				fftBuf[i] = Math.sqrt(fftBuf[2*i]*fftBuf[2*i] + fftBuf[2*i + 1]*fftBuf[2*i + 1]);
 			}
 			
-			// Give the new data to the view
-			view.updateSpectrum(Arrays.copyOf(fftBuf, FFT_INPUT_SIZE));
+			// Give the new data to the consumers
+			updateConsumers(Arrays.copyOf(fftBuf, FFT_INPUT_SIZE));
 			
-//			System.out.println(count++);
+			// System.out.println(count++);
+			//System.out.println("Time: " + (System.currentTimeMillis() - l));
+			//System.out.println(System.currentTimeMillis() - t);
+			//t = System.currentTimeMillis();
 		}
+	}
+	
+	private void updateConsumers(double[] fft) {
+		for (SpectrumConsumer c : spectrumConsumers) {
+			c.updateSpectrum(fft.clone());
+		}
+	}
+	
+	public void attachConsumer(SpectrumConsumer c) {
+		spectrumConsumers.add(c);
 	}
 	
 }
