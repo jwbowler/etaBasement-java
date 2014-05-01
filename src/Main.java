@@ -22,17 +22,13 @@ public class Main {
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 		
 		final SpectrumView spectrumView = new SpectrumView();
+		final ZBT zbt = new ZBT();
+		
 		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream());
-		
 		spectrumAnalyzer.attachConsumer(spectrumView);
+		spectrumAnalyzer.attachConsumer(zbt);
 		
-		final ArrayList<Letter> letters = new ArrayList<>();
-		letters.add(new Letter(0, 15, 65));
-		letters.add(new Letter(0, 60, 140));
-		letters.add(new Letter(0, 120, 255));
 		
-		for (Letter l : letters)
-			spectrumAnalyzer.attachConsumer(l);
 		
 		SwingUtilities.invokeAndWait(new Runnable() {
 			public void run() {
@@ -42,22 +38,9 @@ public class Main {
 				
 				frame.setLayout(new FlowLayout());
 				frame.add(spectrumView);
+				frame.add(zbt.getPanel());
 				
 				
-				JPanel vis = new JPanel(new GridLayout(1,3));
-				for (Letter l : letters)
-					vis.add(l.getIntensityVis());
-				
-				JPanel controllers = new JPanel(new GridLayout(0,1));
-				for (Letter l : letters)
-					controllers.add(l.getControllerPanel());
-
-				JPanel zbt = new JPanel(new GridLayout(0,1));
-				vis.setBackground(Color.BLACK);
-				controllers.setBackground(Color.BLACK);
-				zbt.add(vis);
-				zbt.add(controllers);
-				frame.add(zbt);
 				
 				frame.pack();
 				frame.setVisible(true);

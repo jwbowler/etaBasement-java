@@ -13,7 +13,7 @@ import slider.RangeSlider;
 
 public class Letter implements SpectrumConsumer {
 
-	private double offset;
+	private double offset, prescale = 1E7;
 	private int fMin, fMax;
 	
 	ArrayList<IntensityVis> visualizations = new ArrayList<>();
@@ -23,11 +23,15 @@ public class Letter implements SpectrumConsumer {
 		this.fMin = fMin;
 		this.fMax = fMax;
 	}
+	
+	public void setPrescale(double prescale) {
+		this.prescale = prescale;
+	}
 
 	@Override
 	public void updateSpectrum(double[] spectrumData) {
 		double score = score(spectrumData);
-		score /= 2E7;
+		score /= prescale;
 		for (IntensityVis v : visualizations)
 			v.update(score);
 	}
