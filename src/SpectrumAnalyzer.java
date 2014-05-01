@@ -14,13 +14,10 @@ public class SpectrumAnalyzer extends Thread {
 	
 	private static final int NUM_FFT_INPUT_SAMPLES = 4096; // number of samples that go into the FFT machine
 	private static final int NUM_FFT_INPUT_BYTES = NUM_FFT_INPUT_SAMPLES * 2;
-	private static final int MIN_NUM_SAMPLES_IN_UPDATE = 128; // wait until there are at least this many new samples in the
-														  // audio input stream before FFTing
 	
 	private static final int FFT_DELAY = 15;
 
 	private AudioInputStream stream;
-	private SpectrumView view;
 	private DoubleFFT_1D fftMachine = new DoubleFFT_1D(NUM_FFT_INPUT_SAMPLES);
 	
 	private ArrayList<SpectrumConsumer> spectrumConsumers = new ArrayList<>();

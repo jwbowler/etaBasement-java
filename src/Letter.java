@@ -1,9 +1,11 @@
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.util.ArrayList;
 
 import javax.swing.JPanel;
@@ -11,19 +13,25 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import slider.RangeSlider;
+import utilities.Utilities;
 
 public class Letter implements SpectrumConsumer {
 
 	private double outMin, outMax, prescale = 1E7;
+	private String letter;
 	private int fMin, fMax;
+	private float hue;
 	
-	ArrayList<IntensityVis> visualizations = new ArrayList<>();
+	ArrayList<AmpVis> ampVis = new ArrayList<>();
+	ArrayList<LetterVis> letterVis = new ArrayList<>();
 	
-	public Letter(double outMin, double outMax, int fMin, int fMax) {
+	public Letter(double outMin, double outMax, int fMin, int fMax, float hue, String letter) {
 		this.outMin = outMin;
 		this.outMax = outMax;
 		this.fMin = fMin;
 		this.fMax = fMax;
+		this.hue = hue;
+		this.letter = letter;
 	}
 	
 	public void setPrescale(double prescale) {
@@ -32,10 +40,16 @@ public class Letter implements SpectrumConsumer {
 
 	@Override
 	public void updateSpectrum(double[] spectrumData) {
-		double score = score(spectrumData);
-		score /= prescale;
-		for (IntensityVis v : visualizations)
-			v.update(score);
+		hue += 0.001f;
+		double amp = score(spectrumData);
+		amp /= prescale;
+		double out = Math.min(1.0, Math.max(0, (amp-outMin)/(outMax-outMin)));
+
+		for (AmpVis v : ampVis)
+			v.update(amp, out);
+		
+		for (LetterVis v : letterVis)
+			v.update(out);
 	}
 
 	public double score(double[] fft) {
@@ -45,22 +59,64 @@ public class Letter implements SpectrumConsumer {
 
 		return sum;
 	}
-
-	public JPanel getIntensityVis() {
-		IntensityVis vis = new IntensityVis();
-		visualizations.add(vis);
+	
+	public JPanel getLetterVis() {
+		LetterVis vis = new LetterVis();
+		letterVis.add(vis);
 		return vis;
 	}
 
-	private class IntensityVis extends JPanel {
-		private double score;
+	private class LetterVis extends JPanel {
+		private double out;
 		
-		public IntensityVis() {
+		public LetterVis() {
+			setPreferredSize(new Dimension(150, 150));
+		}
+
+		public void update(double out) {
+			this.out = out;
+			repaint();
+		}
+
+		protected void paintComponent(Graphics graphics) {
+			super.paintComponent(graphics);
+
+			Color BG_COLOR = Color.black;
+			Color BAR_COLOR = Color.white;
+
+			Graphics2D g = (Graphics2D) graphics;
+	    	g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			int size = Math.min(this.getWidth(), this.getHeight());
+			g.setFont(new Font("Arial Black", Font.BOLD, (int)Math.round(size*(4.0/3.2))));
+			g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+			g.setColor(BG_COLOR);
+			g.fillRect(0, 0, getWidth(), getHeight());
+			//g.setColor(Color.BLUE);
+			//g.fillRect((getWidth()-size)/2, (getHeight()-size)/2, size, size);
+
+			//g.setColor(new Color(255,255,255,(int)(255*out)));
+			g.setColor(Utilities.colorFromHSBA(hue, 0.75f, 1.0f, (float)out));
+			g.drawString(letter, (getWidth()-size)/2, getHeight() - (getHeight()-size)/2);
+		}
+	}
+
+	public JPanel getIntensityVis() {
+		AmpVis vis = new AmpVis();
+		ampVis.add(vis);
+		return vis;
+	}
+
+	private class AmpVis extends JPanel {
+		private double amp, out;
+		
+		public AmpVis() {
 			setPreferredSize(new Dimension(80, 200));
 		}
 
-		public void update(double score) {
-			this.score = score;
+		public void update(double amp, double out) {
+			this.amp = amp;
+			this.out = out;
 			repaint();
 		}
 
@@ -76,13 +132,11 @@ public class Letter implements SpectrumConsumer {
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setColor(BAR_COLOR);
 
-			int amp = (int)Math.round(getHeight() * score);
-			int out = (int)(Math.min(255, Math.max(0, (score-outMin)*255/(outMax-outMin))));
-			System.out.println(out);
-			g.setColor(new Color(255,255,255,out));
-			g.fillRect(5, getHeight()-amp,getWidth()-10, amp);
+			int height = (int)Math.round(getHeight() * amp);
+			//g.setColor(new Color(255,255,255,(int)(255*out)));
+			//g.fillRect(5, getHeight()-height,getWidth()-10, height);
 			g.setColor(BAR_COLOR);
-			g.drawRect(5, getHeight()-amp,getWidth()-10, amp);
+			g.drawRect(5, getHeight()-height,getWidth()-10, height);
 			
 			
 			/*

@@ -10,6 +10,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -37,12 +38,13 @@ public class Main {
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 				
 				frame.setLayout(new FlowLayout());
-				frame.add(spectrumView);
+				//frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.PAGE_AXIS));
+
 				frame.add(zbt.getPanel());
-				
-				
+				frame.add(spectrumView);
 				
 				frame.pack();
+				frame.setSize(1124, 924);
 				frame.setVisible(true);
 			}
 		});

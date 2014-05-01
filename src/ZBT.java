@@ -1,9 +1,9 @@
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import utilities.RollingAverage;
@@ -12,14 +12,14 @@ import utilities.Utilities;
 
 public class ZBT implements SpectrumConsumer{
 	int DELAY_MILLIS = 20;
-	int RUNNING_AVG_TIME = 10000;
+	int RUNNING_AVG_TIME = 15000;
 	RollingAverage rollingAvg = new RollingAverage(RUNNING_AVG_TIME/DELAY_MILLIS);
 
 	ArrayList<Letter> letters = new ArrayList<>();
 	public ZBT() {
-		letters.add(new Letter(0.25, 0.5, 15, 65));
-		letters.add(new Letter(0.1, .7, 60, 140));
-		letters.add(new Letter(0.1, .5, 120, 255));
+		letters.add(new Letter(0.25, 0.5, 10, 55, 0.0f, "Z"));
+		letters.add(new Letter(0.1, .7, 55, 130, 0.33f, "B"));
+		letters.add(new Letter(0.1, .5, 120, 255, 0.66f, "T"));
 	}
 		
 	@Override
@@ -33,24 +33,33 @@ public class ZBT implements SpectrumConsumer{
 	}
 	
 	public JPanel getPanel() {
-		JPanel vis = new JPanel(new GridLayout(1,3, 100, 0));
+		JPanel letterVis = new JPanel(new GridLayout(1, 3, 0, 0));
+		letterVis.setBackground(Color.BLACK);
+		for (Letter l : letters) {
+			letterVis.add(l.getLetterVis());
+		}
+		
+		JPanel controllers = new JPanel(new GridLayout(0, 1, 0, 5));
+		controllers.setBackground(Color.BLACK);
+		for (Letter l : letters)
+			controllers.add(l.getFrequencyControllerPanel());
+
+		JPanel ampVis = new JPanel(new GridLayout(1, 3, 50, 0));
+		ampVis.setBackground(Color.BLACK);
 		for (Letter l : letters) {
 			JPanel subPanel = new JPanel();
 			subPanel.setBackground(Color.BLACK);;
 			subPanel.add(l.getOutputControlPanel());
 			subPanel.add(l.getIntensityVis());
-			vis.add(subPanel);
+			ampVis.add(subPanel);
 		}
-			
-		JPanel controllers = new JPanel(new GridLayout(0,1));
-		for (Letter l : letters)
-			controllers.add(l.getFrequencyControllerPanel());
-
-		JPanel zbt = new JPanel(new GridLayout(0,1,0,20));
-		vis.setBackground(Color.BLACK);
-		controllers.setBackground(Color.BLACK);
+		
+		JPanel zbt = new JPanel();
+		zbt.setLayout(new BoxLayout(zbt, BoxLayout.Y_AXIS));
 		zbt.setBackground(Color.BLACK);
-		zbt.add(vis);
+		zbt.add(letterVis);
+		ampVis.setBorder(BorderFactory.createEmptyBorder(25, 0, 10, 0));
+		zbt.add(ampVis);
 		zbt.add(controllers);
 		
 		return zbt;

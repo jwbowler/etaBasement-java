@@ -23,7 +23,7 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 	
 	private static final Color BAR_COLOR = new Color(255, 255, 255, 255);
 	private static final int DEFAULT_SIZE_W = 1024;
-	private static final int DEFAULT_SIZE_H = 500;
+	private static final int DEFAULT_SIZE_H = 400;
 	
 	public SpectrumView() {
 		setPreferredSize(new Dimension(DEFAULT_SIZE_W, DEFAULT_SIZE_H));
@@ -60,10 +60,7 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 	private int[] xpoints = new int[258];
 	private int[] ypoints = new int[258];
 	{
-		xpoints[256] = 256*4;
-	    xpoints[257] = 0;
-	    ypoints[256] = 500;
-	    ypoints[257] = 500;
+		
 	}
 
 	private void dickingAround() {
@@ -87,9 +84,13 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 		    for (int i = 0; i < 256; i++) {
 		    	int val = (int) spectrumData[i] / 2000;
 		    	xpoints[i] = i*4;
-		    	ypoints[i] = 500-val;
+		    	ypoints[i] = getHeight()-val;
 		    	//g.fillRect(i*4, 500 - val, 4, val);
 		    }
+		    xpoints[256] = 256*4;
+		    xpoints[257] = 0;
+		    ypoints[256] = getHeight();
+		    ypoints[257] = getHeight();
 		    
 	    	Polygon p = new Polygon(xpoints, ypoints, 258);
 
