@@ -1,5 +1,8 @@
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -8,6 +11,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 
@@ -18,21 +22,32 @@ public class Main {
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException {
 		
 		final SpectrumView spectrumView = new SpectrumView();
-		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream(), spectrumView);
+		final ZBT zbt = new ZBT();
+		
+		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream());
+		spectrumAnalyzer.attachConsumer(spectrumView);
+		spectrumAnalyzer.attachConsumer(zbt);
+		
+		
 		
 		SwingUtilities.invokeAndWait(new Runnable() {
 			public void run() {
 				frame = new JFrame();
+				frame.getContentPane().setBackground(Color.black);
 				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				
 				frame.setLayout(new FlowLayout());
 				frame.add(spectrumView);
+				frame.add(zbt.getPanel());
+				
+				
+				
 				frame.pack();
 				frame.setVisible(true);
 			}
 		});
 		
 		spectrumAnalyzer.start();
-	
 	}
 	
 	private static AudioInputStream createStream() {		
