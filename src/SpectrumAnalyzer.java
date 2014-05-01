@@ -51,7 +51,7 @@ public class SpectrumAnalyzer extends Thread {
 					// rotate the buffer
 					//int numBytesToRead = Math.max(MIN_NUM_SAMPLES_IN_UPDATE, available);
 					int numBytesToRead = available;
-					int offset = FFT_INPUT_SIZE - numBytesToRead;
+					int offset = NUM_FFT_INPUT_BYTES - numBytesToRead;
 					System.arraycopy(audioBuf8, numBytesToRead, audioBuf8, 0, offset);
 
 					// THIS OPERATION IS FUCKING SLOW JESUS
