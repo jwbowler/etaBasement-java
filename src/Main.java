@@ -65,7 +65,6 @@ public class Main {
 		});
 		
 		spectrumAnalyzer.start();
-	
 	}
 	
 	private static AudioInputStream createStream() {		

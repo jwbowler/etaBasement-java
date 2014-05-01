@@ -1,5 +1,6 @@
 package slider;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -7,6 +8,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 
@@ -152,6 +154,8 @@ class RangeSliderUI extends BasicSliderUI {
     @Override
     public void paint(Graphics g, JComponent c) {
         super.paint(g, c);
+        if (true)
+        	return;
         
         Rectangle clipRect = g.getClipBounds();
         if (upperThumbSelected) {
@@ -181,6 +185,10 @@ class RangeSliderUI extends BasicSliderUI {
     public void paintTrack(Graphics g) {
         // Draw track.
         super.paintTrack(g);
+
+        Graphics2D g2d = (Graphics2D)g;
+        Stroke defaultStroke = g2d.getStroke();
+    	g2d.setStroke(new BasicStroke(10f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
         
         Rectangle trackBounds = trackRect;
         
@@ -189,6 +197,12 @@ class RangeSliderUI extends BasicSliderUI {
             // of one thumb to the other.
             int lowerX = thumbRect.x + (thumbRect.width / 2);
             int upperX = upperThumbRect.x + (upperThumbRect.width / 2);
+            
+            if (lowerX == upperX) {
+            	//just a thought...
+            	lowerX--;
+            	upperX++;
+            }
             
             // Determine track position.
             int cy = (trackBounds.height / 2) - 2;
@@ -199,14 +213,17 @@ class RangeSliderUI extends BasicSliderUI {
             
             // Draw selected range.
             g.setColor(rangeColor);
+            g.drawLine(lowerX - trackBounds.x, 2, upperX - trackBounds.x, 2);
+
+            /*
             for (int y = 0; y <= 3; y++) {
                 g.drawLine(lowerX - trackBounds.x, y, upperX - trackBounds.x, y);
-            }
+            }*/
 
             // Restore position and color.
             g.translate(-trackBounds.x, -(trackBounds.y + cy));
             g.setColor(oldColor);
-            
+
         } else {
             // Determine position of selected range by moving from the middle
             // of one thumb to the other.
@@ -230,6 +247,8 @@ class RangeSliderUI extends BasicSliderUI {
             g.translate(-(trackBounds.x + cx), -trackBounds.y);
             g.setColor(oldColor);
         }
+        
+        g2d.setStroke(defaultStroke);
     }
     
     /**
