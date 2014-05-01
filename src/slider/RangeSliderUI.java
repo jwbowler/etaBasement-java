@@ -227,8 +227,8 @@ class RangeSliderUI extends BasicSliderUI {
         } else {
             // Determine position of selected range by moving from the middle
             // of one thumb to the other.
-            int lowerY = thumbRect.x + (thumbRect.width / 2);
-            int upperY = upperThumbRect.x + (upperThumbRect.width / 2);
+            int lowerY = thumbRect.y + (thumbRect.height / 2);
+            int upperY = upperThumbRect.y + (upperThumbRect.height / 2);
             
             // Determine track position.
             int cx = (trackBounds.width / 2) - 2;

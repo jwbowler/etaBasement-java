@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -13,13 +14,14 @@ import slider.RangeSlider;
 
 public class Letter implements SpectrumConsumer {
 
-	private double offset, prescale = 1E7;
+	private double outMin, outMax, prescale = 1E7;
 	private int fMin, fMax;
 	
 	ArrayList<IntensityVis> visualizations = new ArrayList<>();
-
-	public Letter(double offset, int fMin, int fMax) {
-		this.offset = offset;
+	
+	public Letter(double outMin, double outMax, int fMin, int fMax) {
+		this.outMin = outMin;
+		this.outMax = outMax;
 		this.fMin = fMin;
 		this.fMax = fMax;
 	}
@@ -69,32 +71,76 @@ public class Letter implements SpectrumConsumer {
 			Color BAR_COLOR = Color.white;
 
 			Graphics2D g = (Graphics2D) graphics;
+			g.setStroke(new BasicStroke(2.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 			g.setColor(BG_COLOR);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setColor(BAR_COLOR);
 
-			for (int i = 0; i < 256; i++) {
-				int amp = (int)Math.round(getHeight() * score);
-				g.drawRect(5, getHeight()-amp,getWidth()-10, amp);
-			}
+			int amp = (int)Math.round(getHeight() * score);
+			int out = (int)(Math.min(255, Math.max(0, (score-outMin)*255/(outMax-outMin))));
+			System.out.println(out);
+			g.setColor(new Color(255,255,255,out));
+			g.fillRect(5, getHeight()-amp,getWidth()-10, amp);
+			g.setColor(BAR_COLOR);
+			g.drawRect(5, getHeight()-amp,getWidth()-10, amp);
+			
+			
+			/*
+			g.setColor(new Color(0,0,0,128));
+			g.fillRect(0, getHeight()-(int)(getHeight()*(outMin)), getWidth(), (int)(getHeight()*(outMin)));
+			g.fillRect(0, 0, getWidth(), (int)(getHeight()*(1-outMax)));
+			*/
+			g.setColor(new Color(0,255,0,128));
+			g.drawLine(0, getHeight()-(int)(getHeight()*(outMin)), getWidth(), getHeight()-(int)(getHeight()*(outMin)));
+			g.setColor(new Color(255,0,0,128));
+			g.drawLine(0, (int)(getHeight()*(1-outMax)), getWidth(), (int)(getHeight()*(1-outMax)));
 		}
 	}
 	
-	public JPanel getControllerPanel() {
-		return new ControllerPanel();
+	public JPanel getOutputControlPanel() {
+		return new OutputControllerPanel();
 	}
 	
-	private class ControllerPanel extends JPanel {		
-		public ControllerPanel() {
+	private class OutputControllerPanel extends JPanel {		
+		public OutputControllerPanel() {
 			//setPreferredSize(new Dimension(80, 200));
-			this.setLayout(new GridLayout(0,1));
-			
+		    RangeSlider rangeSlider = new RangeSlider();
+		    rangeSlider.setOrientation(RangeSlider.VERTICAL);
+		    this.setBackground(Color.BLACK);
+		    rangeSlider.setBackground(Color.BLACK);
+		    rangeSlider.setFocusable(false);
+		    rangeSlider.setMinimum(0);
+	        rangeSlider.setMaximum(100);
+	        rangeSlider.setValue((int)(outMin*100));
+	        rangeSlider.setUpperValue((int)(outMax*100));
+	        rangeSlider.setValue((int)(outMin*100)); //actually necessary if default upper < fMin
+	        
+		    rangeSlider.addChangeListener(new ChangeListener() {
+	            public void stateChanged(ChangeEvent e) {
+	                RangeSlider slider = (RangeSlider) e.getSource();
+	                outMin = slider.getValue()/100.0;
+	                outMax = slider.getUpperValue()/100.0;
+	            }
+	        });
+		    
+		    this.setLayout(new GridLayout(1,1));
+		    this.add(rangeSlider);
+		}
+	}
+	
+	public JPanel getFrequencyControllerPanel() {
+		return new FrequencyControllerPanel();
+	}
+	
+	private class FrequencyControllerPanel extends JPanel {		
+		public FrequencyControllerPanel() {
+			//setPreferredSize(new Dimension(80, 200));
 		    RangeSlider rangeSlider = new RangeSlider();
 		    rangeSlider.setOrientation(RangeSlider.HORIZONTAL);
-		    rangeSlider.setBackground(Color.black);
+		    this.setBackground(Color.BLACK);
+		    rangeSlider.setBackground(Color.BLACK);
 		    rangeSlider.setFocusable(false);
-		    rangeSlider.setPreferredSize(new Dimension(250, rangeSlider.getPreferredSize().height));
-	        rangeSlider.setMinimum(0);
+		    rangeSlider.setMinimum(0);
 	        rangeSlider.setMaximum(255);
 	        rangeSlider.setValue(fMin);
 	        rangeSlider.setUpperValue(fMax);
@@ -108,6 +154,7 @@ public class Letter implements SpectrumConsumer {
 	            }
 	        });
 		    
+		    this.setLayout(new GridLayout(1,1));
 		    this.add(rangeSlider);
 		}
 	}
