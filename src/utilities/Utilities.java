@@ -9,7 +9,7 @@ public class Utilities {
 	
 	public static double fftSum(int start, int end, double[] fft) {
 		double sum = 0;
-		for (int i = 0; i<256; i++)
+		for (int i = start; i<end; i++)
 			sum += fft[i];
 		return sum;
 	}

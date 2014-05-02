@@ -1,3 +1,4 @@
+package zbt;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,7 +13,9 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import main.SpectrumConsumer;
 import slider.RangeSlider;
+import utilities.RollingAverage;
 import utilities.Utilities;
 
 public class Letter implements SpectrumConsumer {
@@ -24,6 +27,9 @@ public class Letter implements SpectrumConsumer {
 	
 	ArrayList<AmpVis> ampVis = new ArrayList<>();
 	ArrayList<LetterVis> letterVis = new ArrayList<>();
+	
+	RollingAverage totalAvg = new RollingAverage(30000/15);
+	RollingAverage rangeAvg = new RollingAverage(5000/15);
 	
 	public Letter(double outMin, double outMax, int fMin, int fMax, float hue, String letter) {
 		this.outMin = outMin;
@@ -40,24 +46,25 @@ public class Letter implements SpectrumConsumer {
 
 	@Override
 	public void updateSpectrum(double[] spectrumData) {
-		hue += 0.001f;
-		double amp = score(spectrumData);
-		amp /= prescale;
+		double amp = Utilities.fftSum(fMin, fMax, spectrumData) / prescale;
 		double out = Math.min(1.0, Math.max(0, (amp-outMin)/(outMax-outMin)));
+		
+		//totalAvg.update(Utilities.fftSum(0, 256, spectrumData)/prescale);
+		totalAvg.update(out);
+		rangeAvg.update(out);
+		
+		double hue = rangeAvg.getValue()/totalAvg.getValue();
+		hue = Math.max(0, hue-.75)*2.0f;
+		hue = Math.max(0, 0.75 - hue);
+		this.hue = (float)hue;
+		//hue += 0.001f;
+		
 
 		for (AmpVis v : ampVis)
 			v.update(amp, out);
 		
 		for (LetterVis v : letterVis)
 			v.update(out);
-	}
-
-	public double score(double[] fft) {
-		double sum = 0;
-		for (int i = fMin; i < fMax; i++)
-			sum += fft[i];
-
-		return sum;
 	}
 	
 	public JPanel getLetterVis() {

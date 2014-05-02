@@ -1,3 +1,4 @@
+package zbt;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.ArrayList;
@@ -6,13 +7,14 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
+import main.SpectrumConsumer;
 import utilities.RollingAverage;
 import utilities.Utilities;
 
 
 public class ZBT implements SpectrumConsumer{
-	int DELAY_MILLIS = 20;
-	int RUNNING_AVG_TIME = 15000;
+	int DELAY_MILLIS = 15;
+	int RUNNING_AVG_TIME = 60000;
 	RollingAverage rollingAvg = new RollingAverage(RUNNING_AVG_TIME/DELAY_MILLIS);
 
 	ArrayList<Letter> letters = new ArrayList<>();
