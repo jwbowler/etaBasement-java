@@ -14,22 +14,17 @@ import utilities.Utilities;
 
 public class ZBT implements SpectrumConsumer{
 	int DELAY_MILLIS = 15;
-	int RUNNING_AVG_TIME = 60000;
-	RollingAverage rollingAvg = new RollingAverage(RUNNING_AVG_TIME/DELAY_MILLIS);
 
 	ArrayList<Letter> letters = new ArrayList<>();
 	public ZBT() {
-		letters.add(new Letter(0.25, 0.5, 10, 55, 0.0f, "Z"));
-		letters.add(new Letter(0.1, .7, 55, 130, 0.33f, "B"));
-		letters.add(new Letter(0.1, .5, 120, 255, 0.66f, "T"));
+		letters.add(new Letter(0.25, 0.5, 0, 50, 0.0f, "Z"));
+		letters.add(new Letter(0.1, .7, 40, 120, 0.33f, "B"));
+		letters.add(new Letter(0.1, .5, 90, 255, 0.66f, "T"));
 	}
 		
 	@Override
 	public void updateSpectrum(double[] spectrumData) {
-		double sum = Utilities.fftSum(0, 256, spectrumData);
-		
 		for (Letter l : letters) {
-			l.setPrescale(rollingAvg.update(sum));
 			l.updateSpectrum(spectrumData);
 		}
 	}

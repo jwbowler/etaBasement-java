@@ -23,7 +23,7 @@ public class Letter implements SpectrumConsumer {
 	private boolean AUTO_OUTPUT = true;
 	
 	private double outMinSet, outMaxSet;
-	private double outMin, outMax, prescale = 1E7;
+	private double outMin, outMax;
 	private String letter;
 	private int fMin, fMax;
 	private float hue;
@@ -31,8 +31,12 @@ public class Letter implements SpectrumConsumer {
 	ArrayList<AmpVis> ampVis = new ArrayList<>();
 	ArrayList<LetterVis> letterVis = new ArrayList<>();
 	
-	RollingAverage totalAvg = new RollingAverage(10000/15);
-	RollingAverage rangeAvg = new RollingAverage(2000/15);
+	RollingAverage intensityAvg = new RollingAverage(4000/15);
+
+	RollingAverage colorLongAvg = new RollingAverage(20000/15);
+	RollingAverage colorShortAvg = new RollingAverage(2000/15);
+	
+	RollingAverage totalLongAvg = new RollingAverage(30000/15);
 	
 	public Letter(double outMinSet, double outMaxSet, int fMin, int fMax, float hue, String letter) {
 		this.outMinSet = outMinSet;
@@ -47,25 +51,33 @@ public class Letter implements SpectrumConsumer {
 			this.outMaxSet = .95;
 		}
 	}
-	
-	public void setPrescale(double prescale) {
-		this.prescale = prescale;
-	}
 
 	@Override
 	public void updateSpectrum(double[] spectrumData) {
-		double amp = Utilities.fftSum(fMin, fMax, spectrumData) / prescale;
+		totalLongAvg.update(Utilities.fftSum(0, 256, spectrumData));
+		
+		double amp = Utilities.fftSum(fMin, fMax, spectrumData);
 		
 		//totalAvg.update(Utilities.fftSum(0, 256, spectrumData)/prescale);
-		totalAvg.update(amp);
-		rangeAvg.update(amp);
+		double prelog = amp;
+		amp = Math.log(amp)/Math.log(2.5); //.5 to 2
+		amp = Math.max(-1.0, Math.min(10.0, amp)); //cap
+		amp = (amp + 1.0);
+		amp = prelog;
+		//System.out.println(preamp + " " + amp);
+		
+
+
+		colorLongAvg.update(amp);
+		colorShortAvg.update(amp);
+		intensityAvg.update(amp);
 		
 		if (AUTO_OUTPUT) {
-			double min = rangeAvg.getPercentile(0.05);
-			outMin = rangeAvg.getPercentile(outMinSet);
-			outMin = Math.max(min*1.5, outMin);
-			outMax = rangeAvg.getPercentile(outMaxSet);
-			outMax = Math.max(outMin*1.5, outMax);
+			double min = intensityAvg.getPercentile(0.05);
+			outMin = intensityAvg.getPercentile(outMinSet);
+			outMin = Math.max(min+.05, outMin);
+			outMax = intensityAvg.getPercentile(outMaxSet);
+			outMax = Math.max(outMin+.05, outMax);
 		} else {
 			outMin = outMinSet;
 			outMax = outMinSet;
@@ -74,12 +86,19 @@ public class Letter implements SpectrumConsumer {
 		double out = Math.min(1.0, Math.max(0, (amp-outMin)/(outMax-outMin)));
 		out = Math.pow(2, out)-1.0;
 		
-		double hue = rangeAvg.getValue()/totalAvg.getValue();
-		hue = Math.max(0, hue-.75)*2.0f;
+		double hue = colorShortAvg.getValue()/colorLongAvg.getValue();
+		
+		hue = Math.log(hue)/Math.log(1.25); //.5 to 2
+		hue = Math.max(-1.0, Math.min(1.0, hue)); //cap
+		hue = .75 - (.75*(hue*.5+.5));
+		
+		//hue = Math.max(0, hue-.75)*2.0f;
 		//hue *= 2.0;
-		hue = Math.max(0, 0.75 - hue);
+		//hue = Math.max(0, 0.75 - hue);
+		
 		this.hue = (float)hue;
-		//hue += 0.001f;
+		
+		//this.hue += 0.001f;
 		
 
 		for (AmpVis v : ampVis)
@@ -151,6 +170,8 @@ public class Letter implements SpectrumConsumer {
 
 		protected void paintComponent(Graphics graphics) {
 			super.paintComponent(graphics);
+			
+			double scale = 1/(totalLongAvg.getValue()*1.25);
 
 			Color BG_COLOR = Color.black;
 			Color BAR_COLOR = Color.white;
@@ -161,7 +182,7 @@ public class Letter implements SpectrumConsumer {
 			g.fillRect(0, 0, getWidth(), getHeight());
 			g.setColor(BAR_COLOR);
 
-			int height = (int)Math.round(getHeight() * amp);
+			int height = (int)Math.round(getHeight() * amp * scale);
 			//g.setColor(new Color(255,255,255,(int)(255*out)));
 			//g.fillRect(5, getHeight()-height,getWidth()-10, height);
 			g.setColor(BAR_COLOR);
@@ -176,9 +197,11 @@ public class Letter implements SpectrumConsumer {
 			g.setStroke(new BasicStroke(4.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 
 			g.setColor(new Color(0,255,0,128));
-			g.drawLine(0, getHeight()-(int)(getHeight()*(outMin)), getWidth(), getHeight()-(int)(getHeight()*(outMin)));
+			int minY = (int)Math.round(getHeight()*outMin * scale);
+			int maxY = (int)Math.round((getHeight()*(1.0-outMax * scale)));
+			g.drawLine(0, getHeight()-minY, getWidth(), getHeight()-minY);
 			g.setColor(new Color(255,0,0,128));
-			g.drawLine(0, (int)(getHeight()*(1-outMax)), getWidth(), (int)(getHeight()*(1-outMax)));
+			g.drawLine(0, maxY, getWidth(), maxY);
 		}
 	}
 	
