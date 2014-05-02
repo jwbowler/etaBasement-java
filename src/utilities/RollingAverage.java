@@ -1,12 +1,12 @@
 package utilities;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class RollingAverage {
-	private int length;
-	private double rollingAvg = 0;
-	private LinkedList<Double> pastVals = new LinkedList<>();
-
+	protected int length;
+	protected double rollingAvg = 0;
+	protected LinkedList<Double> pastVals = new LinkedList<>();
 	
 	public RollingAverage(int length) {
 		this.length = length;
@@ -25,5 +25,11 @@ public class RollingAverage {
 	
 	public double getValue() {
 		return rollingAvg;
+	}
+	
+	public double getPercentile(double p) {	
+		Double[] sorted = pastVals.toArray(new Double[pastVals.size()]);
+		Arrays.sort(sorted);
+		return sorted[(int)((p*(pastVals.size()-1)))];
 	}
 }

@@ -20,6 +20,9 @@ import utilities.Utilities;
 
 public class Letter implements SpectrumConsumer {
 
+	private boolean AUTO_OUTPUT = true;
+	
+	private double outMinSet, outMaxSet;
 	private double outMin, outMax, prescale = 1E7;
 	private String letter;
 	private int fMin, fMax;
@@ -28,16 +31,21 @@ public class Letter implements SpectrumConsumer {
 	ArrayList<AmpVis> ampVis = new ArrayList<>();
 	ArrayList<LetterVis> letterVis = new ArrayList<>();
 	
-	RollingAverage totalAvg = new RollingAverage(30000/15);
-	RollingAverage rangeAvg = new RollingAverage(5000/15);
+	RollingAverage totalAvg = new RollingAverage(10000/15);
+	RollingAverage rangeAvg = new RollingAverage(2000/15);
 	
-	public Letter(double outMin, double outMax, int fMin, int fMax, float hue, String letter) {
-		this.outMin = outMin;
-		this.outMax = outMax;
+	public Letter(double outMinSet, double outMaxSet, int fMin, int fMax, float hue, String letter) {
+		this.outMinSet = outMinSet;
+		this.outMaxSet = outMaxSet;
 		this.fMin = fMin;
 		this.fMax = fMax;
 		this.hue = hue;
 		this.letter = letter;
+		
+		if (AUTO_OUTPUT) {
+			this.outMinSet = .20;
+			this.outMaxSet = .95;
+		}
 	}
 	
 	public void setPrescale(double prescale) {
@@ -47,14 +55,28 @@ public class Letter implements SpectrumConsumer {
 	@Override
 	public void updateSpectrum(double[] spectrumData) {
 		double amp = Utilities.fftSum(fMin, fMax, spectrumData) / prescale;
-		double out = Math.min(1.0, Math.max(0, (amp-outMin)/(outMax-outMin)));
 		
 		//totalAvg.update(Utilities.fftSum(0, 256, spectrumData)/prescale);
-		totalAvg.update(out);
-		rangeAvg.update(out);
+		totalAvg.update(amp);
+		rangeAvg.update(amp);
+		
+		if (AUTO_OUTPUT) {
+			double min = rangeAvg.getPercentile(0.05);
+			outMin = rangeAvg.getPercentile(outMinSet);
+			outMin = Math.max(min*1.5, outMin);
+			outMax = rangeAvg.getPercentile(outMaxSet);
+			outMax = Math.max(outMin*1.5, outMax);
+		} else {
+			outMin = outMinSet;
+			outMax = outMinSet;
+		}
+		
+		double out = Math.min(1.0, Math.max(0, (amp-outMin)/(outMax-outMin)));
+		out = Math.pow(2, out)-1.0;
 		
 		double hue = rangeAvg.getValue()/totalAvg.getValue();
 		hue = Math.max(0, hue-.75)*2.0f;
+		//hue *= 2.0;
 		hue = Math.max(0, 0.75 - hue);
 		this.hue = (float)hue;
 		//hue += 0.001f;
@@ -151,6 +173,8 @@ public class Letter implements SpectrumConsumer {
 			g.fillRect(0, getHeight()-(int)(getHeight()*(outMin)), getWidth(), (int)(getHeight()*(outMin)));
 			g.fillRect(0, 0, getWidth(), (int)(getHeight()*(1-outMax)));
 			*/
+			g.setStroke(new BasicStroke(4.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
+
 			g.setColor(new Color(0,255,0,128));
 			g.drawLine(0, getHeight()-(int)(getHeight()*(outMin)), getWidth(), getHeight()-(int)(getHeight()*(outMin)));
 			g.setColor(new Color(255,0,0,128));
@@ -172,15 +196,15 @@ public class Letter implements SpectrumConsumer {
 		    rangeSlider.setFocusable(false);
 		    rangeSlider.setMinimum(0);
 	        rangeSlider.setMaximum(100);
-	        rangeSlider.setValue((int)(outMin*100));
-	        rangeSlider.setUpperValue((int)(outMax*100));
-	        rangeSlider.setValue((int)(outMin*100)); //actually necessary if default upper < fMin
+	        rangeSlider.setValue((int)(outMinSet*100));
+	        rangeSlider.setUpperValue((int)(outMaxSet*100));
+	        rangeSlider.setValue((int)(outMinSet*100)); //actually necessary if default upper < fMin
 	        
 		    rangeSlider.addChangeListener(new ChangeListener() {
 	            public void stateChanged(ChangeEvent e) {
 	                RangeSlider slider = (RangeSlider) e.getSource();
-	                outMin = slider.getValue()/100.0;
-	                outMax = slider.getUpperValue()/100.0;
+	                outMinSet = slider.getValue()/100.0;
+	                outMaxSet = slider.getUpperValue()/100.0;
 	            }
 	        });
 		    
