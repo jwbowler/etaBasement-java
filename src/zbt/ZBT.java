@@ -17,9 +17,9 @@ public class ZBT implements SpectrumConsumer{
 
 	ArrayList<Letter> letters = new ArrayList<>();
 	public ZBT() {
-		letters.add(new Letter(0.25, 0.5, 0, 50, 0.0f, "Z"));
-		letters.add(new Letter(0.1, .7, 40, 120, 0.33f, "B"));
-		letters.add(new Letter(0.1, .5, 90, 255, 0.66f, "T"));
+		letters.add(new Letter(0.5, 0.99, 5, 40, 0.0f, "Z"));
+		letters.add(new Letter(0.25, .99, 35, 110, 0.33f, "B"));
+		letters.add(new Letter(0.25, .99, 90, 255, 0.66f, "T"));
 	}
 		
 	@Override

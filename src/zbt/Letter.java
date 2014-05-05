@@ -19,9 +19,6 @@ import utilities.RollingAverage;
 import utilities.Utilities;
 
 public class Letter implements SpectrumConsumer {
-
-	private boolean AUTO_OUTPUT = true;
-	
 	private double outMinSet, outMaxSet;
 	private double outMin, outMax;
 	private String letter;
@@ -31,10 +28,10 @@ public class Letter implements SpectrumConsumer {
 	ArrayList<AmpVis> ampVis = new ArrayList<>();
 	ArrayList<LetterVis> letterVis = new ArrayList<>();
 	
-	RollingAverage intensityAvg = new RollingAverage(4000/15);
+	RollingAverage intensityAvg = new RollingAverage(6000/15);
 
-	RollingAverage colorLongAvg = new RollingAverage(20000/15);
-	RollingAverage colorShortAvg = new RollingAverage(2000/15);
+	RollingAverage colorLongAvg = new RollingAverage(30000/15);
+	RollingAverage colorShortAvg = new RollingAverage(4000/15);
 	
 	RollingAverage totalLongAvg = new RollingAverage(30000/15);
 	
@@ -45,11 +42,6 @@ public class Letter implements SpectrumConsumer {
 		this.fMax = fMax;
 		this.hue = hue;
 		this.letter = letter;
-		
-		if (AUTO_OUTPUT) {
-			this.outMinSet = .20;
-			this.outMaxSet = .95;
-		}
 	}
 
 	@Override
@@ -65,24 +57,17 @@ public class Letter implements SpectrumConsumer {
 		amp = (amp + 1.0);
 		amp = prelog;
 		//System.out.println(preamp + " " + amp);
-		
-
 
 		colorLongAvg.update(amp);
 		colorShortAvg.update(amp);
 		intensityAvg.update(amp);
 		
-		if (AUTO_OUTPUT) {
-			double min = intensityAvg.getPercentile(0.05);
-			outMin = intensityAvg.getPercentile(outMinSet);
-			outMin = Math.max(min+.05, outMin);
-			outMax = intensityAvg.getPercentile(outMaxSet);
-			outMax = Math.max(outMin+.05, outMax);
-		} else {
-			outMin = outMinSet;
-			outMax = outMinSet;
-		}
-		
+		double min = intensityAvg.getPercentile(0.05);
+		outMin = intensityAvg.getPercentile(outMinSet);
+		outMin = Math.max(min+.05, outMin);
+		outMax = intensityAvg.getPercentile(outMaxSet);
+		outMax = Math.max(outMin+.05, outMax);
+	
 		double out = Math.min(1.0, Math.max(0, (amp-outMin)/(outMax-outMin)));
 		out = Math.pow(2, out)-1.0;
 		
@@ -144,7 +129,11 @@ public class Letter implements SpectrumConsumer {
 			//g.fillRect((getWidth()-size)/2, (getHeight()-size)/2, size, size);
 
 			//g.setColor(new Color(255,255,255,(int)(255*out)));
-			g.setColor(Utilities.colorFromHSBA(hue, 0.75f, 1.0f, (float)out));
+			double percent = 0.5;
+			float sat = (float)Math.min(1.0, (1-out)/(1-percent));
+			float val = (float)Math.min(1.0, out/(percent));
+			
+			g.setColor(Utilities.colorFromHSBA(hue, sat, val, 1.0f));
 			g.drawString(letter, (getWidth()-size)/2, getHeight() - (getHeight()-size)/2);
 		}
 	}
