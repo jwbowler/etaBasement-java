@@ -25,7 +25,7 @@ public class Main {
 		final ZBT zbt = new ZBT();
 		
 		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream());
-		spectrumAnalyzer.attachConsumer(spectrumView);
+		//spectrumAnalyzer.attachConsumer(spectrumView);
 		spectrumAnalyzer.attachConsumer(zbt);
 		
 		

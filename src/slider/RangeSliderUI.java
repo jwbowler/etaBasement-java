@@ -34,6 +34,8 @@ class RangeSliderUI extends BasicSliderUI {
     private Color upThumbDraw = Color.WHITE;
     private Color upThumbFill = Color.WHITE;
     
+    private GradientGenerator gradient;
+    
     /** Location and size of thumb for upper value. */
     private Rectangle upperThumbRect;
     /** Indicator that determines whether upper thumb is selected. */
@@ -49,10 +51,15 @@ class RangeSliderUI extends BasicSliderUI {
      * @param b RangeSlider
      */
     public RangeSliderUI(RangeSlider b) {
-        super(b);
+    	this(b, null);
     }
     
-    /**
+    public RangeSliderUI(RangeSlider rangeSlider, GradientGenerator gradient) {
+    	super(rangeSlider);
+    	this.gradient = gradient;
+    }
+
+	/**
      * Installs this UI delegate on the specified component. 
      */
     @Override
@@ -213,6 +220,11 @@ class RangeSliderUI extends BasicSliderUI {
             
             // Draw selected range.
             g.setColor(rangeColor);
+
+            if (gradient != null) {
+            	((Graphics2D)g).setPaint(gradient.getGradient(trackBounds.x,0, trackBounds.width, 0));
+            }
+            
             g.drawLine(lowerX - trackBounds.x, 2, upperX - trackBounds.x, 2);
 
             /*

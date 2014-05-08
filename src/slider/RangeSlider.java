@@ -12,6 +12,7 @@ import javax.swing.JSlider;
  * returned by RangeSlider is simply the lower value plus the extent.</p>
  */
 public class RangeSlider extends JSlider {
+	private GradientGenerator gradient = null;
 
     /**
      * Constructs a RangeSlider with default minimum and maximum values of 0
@@ -43,7 +44,7 @@ public class RangeSlider extends JSlider {
      */
     @Override
     public void updateUI() {
-        setUI(new RangeSliderUI(this));
+        setUI(new RangeSliderUI(this, gradient));
         // Update UI for slider labels.  This must be called after updating the
         // UI of the slider.  Refer to JSlider.updateUI().
         updateLabelUIs();
@@ -94,5 +95,10 @@ public class RangeSlider extends JSlider {
         
         // Set extent to set upper value.
         setExtent(newExtent);
+    }
+    
+    public void setGradientColor(GradientGenerator gradient) {
+    	this.gradient = gradient;
+    	this.updateUI();
     }
 }

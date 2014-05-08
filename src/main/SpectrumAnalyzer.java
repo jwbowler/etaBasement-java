@@ -16,7 +16,7 @@ public class SpectrumAnalyzer extends Thread {
 	private static final int NUM_FFT_INPUT_SAMPLES = 4096; // number of samples that go into the FFT machine
 	private static final int NUM_FFT_INPUT_BYTES = NUM_FFT_INPUT_SAMPLES * 2;
 	
-	private static final int FFT_DELAY = 15;
+	private static final int FFT_DELAY = 20;
 
 	private AudioInputStream stream;
 	private DoubleFFT_1D fftMachine = new DoubleFFT_1D(NUM_FFT_INPUT_SAMPLES);

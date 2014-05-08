@@ -12,6 +12,9 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
+import utilities.RollingAverage;
+import utilities.Utilities;
+
 
 public class SpectrumView extends JPanel implements SpectrumConsumer{
 	
@@ -23,16 +26,32 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 	//private static final Color FILL_COLOR = new Color(32, 32, 32, 255);
 	
 	private static final Color BAR_COLOR = new Color(255, 255, 255, 255);
-	private static final int DEFAULT_SIZE_W = 1024;
+	private static final int DEFAULT_SIZE_W = 800;
 	private static final int DEFAULT_SIZE_H = 400;
+	
+	RollingAverage totalLongAvg = new RollingAverage(10000/20);
+	RollingAverage peakLongAvg = new RollingAverage(10000/20);
+	
+	boolean flip = false;
+
 	
 	public SpectrumView() {
 		setPreferredSize(new Dimension(DEFAULT_SIZE_W, DEFAULT_SIZE_H));
 		createEmptyImage();
 	}
 	
+	public void enableFlip(boolean flip) {
+		this.flip = flip;
+	}
+	
 	public void updateSpectrum(double[] spectrumData) {
 		this.spectrumData = spectrumData;
+		totalLongAvg.update(Utilities.fftSum(0, 256, spectrumData));
+		double max = 0;
+		for (int i = 0; i<256; i++)
+			max = Math.max(max, spectrumData[i]);
+		peakLongAvg.update(max);
+
 		//repaint();
 		//paintComponent(this.getGraphics());
 		paintVis(this.getGraphics());
@@ -55,7 +74,7 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 	@Override
 	protected void paintComponent(Graphics graphics) {
 	    super.paintComponent(graphics);
-	    paintVis(graphics);
+		graphics.drawImage(image, 0, 0, null);
 	}
 	
 	private int[] xpoints = new int[258];
@@ -83,7 +102,7 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 	    //g.setColor(BAR_COLOR);
 	    synchronized (spectrumData) {
 		    for (int i = 0; i < 256; i++) {
-		    	int val = (int) spectrumData[i] / 2000;
+		    	int val = (int) (spectrumData[i] * getHeight() / (peakLongAvg.getPercentile(1.0) * 1.0));
 		    	xpoints[i] = i*4;
 		    	ypoints[i] = getHeight()-val;
 		    	//g.fillRect(i*4, 500 - val, 4, val);
@@ -92,6 +111,11 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 		    xpoints[257] = 0;
 		    ypoints[256] = getHeight();
 		    ypoints[257] = getHeight();
+		    
+		    if (flip) {
+		    	for (int i = 0; i<xpoints.length; i++)
+		    		ypoints[i] = getHeight() - ypoints[i];
+		    }
 		    
 	    	Polygon p = new Polygon(xpoints, ypoints, 258);
 
