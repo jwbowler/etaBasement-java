@@ -4,12 +4,14 @@ public class LetterParameters {
 	public enum Presets {TREND_STANDARD, TREND_REDS, TREND_BLUES, WHITE_BASS}
 	
 	public enum ColorPattern {TREND, SOLID};
+	public enum ColorParamMode {RANGE, SINGLE};
 		
 	public int fMin, fMax;
 	public double outMinPercent, outMaxPercent;
 	public double hueStart, hueEnd;
 	public boolean hueFlip;
 	public ColorPattern colorPattern;
+	public ColorParamMode colorParam;
 	
 	public static LetterParameters getParameters(Presets preset, String l) {
 		switch (preset) {
@@ -38,8 +40,9 @@ public class LetterParameters {
 		return this;
 	}
 	
-	public LetterParameters setColorParams(ColorPattern colorPattern, double hueStart, double hueEnd, boolean hueFlip) {
+	public LetterParameters setColorParams(ColorPattern colorPattern, ColorParamMode colorParam, double hueStart, double hueEnd, boolean hueFlip) {
 		this.colorPattern = colorPattern;
+		this.colorParam = colorParam;
 		this.hueStart = hueStart;
 		this.hueEnd = hueEnd;
 		this.hueFlip = hueFlip;
@@ -48,7 +51,7 @@ public class LetterParameters {
 
 	public static LetterParameters trendStandard(String letter) {
 		LetterParameters p = new LetterParameters();
-		p.setColorParams(ColorPattern.TREND, 0.75, 0.0, true);
+		p.setColorParams(ColorPattern.TREND, ColorParamMode.RANGE, 0.75, 0.0, true);
 		
 		switch (letter) {
 		case "Z":
@@ -66,16 +69,16 @@ public class LetterParameters {
 	}
 	
 	public static LetterParameters trendReds(String letter) {
-		return trendStandard(letter).setColorParams(ColorPattern.TREND, 0.16, 0.0, true);
+		return trendStandard(letter).setColorParams(ColorPattern.TREND, ColorParamMode.RANGE, 0.16, 0.0, true);
 	}
 	
 	public static LetterParameters trendBlues(String letter) {
-		return trendStandard(letter).setColorParams(ColorPattern.TREND, 0.45, 0.72, false);
+		return trendStandard(letter).setColorParams(ColorPattern.TREND, ColorParamMode.RANGE, 0.45, 0.72, false);
 	}
 	
 	public static LetterParameters whiteBass(String letter) {
 		LetterParameters p = new LetterParameters();
-		p.setColorParams(ColorPattern.SOLID, 0.75, 0.0, true);
+		p.setColorParams(ColorPattern.SOLID, ColorParamMode.SINGLE, 0.75, 0.0, true);
 		p.setFreq(5, 40);
 		p.setOut(0.5, 0.99);
 		return p;
