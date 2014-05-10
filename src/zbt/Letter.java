@@ -272,4 +272,19 @@ public class Letter implements SpectrumConsumer {
 	        rangeSlider.setValue(p.fMin); //actually necessary if default upper < fMin
 		}
 	}
+
+	public synchronized byte[] getTransmittableColorData() {
+		byte out[] = new byte[3];
+		if (outputColor != null) {
+			out[0] = (byte) outputColor.getRed();
+			out[1] = (byte) outputColor.getGreen();
+			out[2] = (byte) outputColor.getBlue();
+			for (int i = 0; i < 3; i++) {
+				if (out[i] == (byte) 255) {
+					out[i] = (byte) 254;
+				}
+			}
+		}
+		return out;
+	}
 }

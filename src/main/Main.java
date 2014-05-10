@@ -12,6 +12,9 @@ import javax.sound.sampled.TargetDataLine;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
+import comm.Transmitter;
+import comm.Transmitter.SerialPortType;
+
 import zbt.ZBT;
 
 
@@ -25,10 +28,10 @@ public class Main {
 		final ZBT zbt = new ZBT();
 		
 		SpectrumAnalyzer spectrumAnalyzer = new SpectrumAnalyzer(createStream());
-		//spectrumAnalyzer.attachConsumer(spectrumView);
 		spectrumAnalyzer.attachConsumer(zbt);
 		
-		
+		Transmitter transmitter = new Transmitter();
+		transmitter.addMessageSegment(zbt);
 		
 		SwingUtilities.invokeAndWait(new Runnable() {
 			public void run() {
@@ -49,6 +52,9 @@ public class Main {
 		});
 		
 		spectrumAnalyzer.start();
+		
+		transmitter.connect(SerialPortType.SIMULATION);
+		transmitter.start();
 	}
 	
 	private static AudioInputStream createStream() {		

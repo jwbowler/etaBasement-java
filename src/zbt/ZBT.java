@@ -4,6 +4,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -13,6 +15,8 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import comm.Transmittable;
+
 import slider.GradientGenerator;
 import slider.RangeSlider;
 import zbt.LetterParameters.ColorParamMode;
@@ -21,7 +25,7 @@ import main.SpectrumConsumer;
 import main.SpectrumView;
 
 
-public class ZBT implements SpectrumConsumer{
+public class ZBT implements SpectrumConsumer, Transmittable {
 	ArrayList<Letter> letters = new ArrayList<>();
 	SpectrumView specView = new SpectrumView();
 	ZBTController controller;
@@ -49,6 +53,15 @@ public class ZBT implements SpectrumConsumer{
 			l.updateSpectrum(spectrumData);
 			specView.updateSpectrum(spectrumData);
 		}
+	}
+	
+	@Override
+	public synchronized ByteArrayOutputStream getPacket() throws IOException {
+		ByteArrayOutputStream packet = new ByteArrayOutputStream();
+		for (Letter l : letters) {
+			packet.write(l.getTransmittableColorData());
+		}
+		return packet;
 	}
 	
 	public JPanel getPanel() {
