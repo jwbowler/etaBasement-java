@@ -53,7 +53,7 @@ public class Main {
 		
 		spectrumAnalyzer.start();
 		
-		transmitter.connect(SerialPortType.SIMULATION);
+		transmitter.connect(SerialPortType.LINUX);
 		transmitter.start();
 	}
 	

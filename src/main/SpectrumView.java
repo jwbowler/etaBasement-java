@@ -29,8 +29,8 @@ public class SpectrumView extends JPanel implements SpectrumConsumer{
 	private static final int DEFAULT_SIZE_W = 800;
 	private static final int DEFAULT_SIZE_H = 400;
 	
-	RollingAverage totalLongAvg = new RollingAverage(10000/20);
-	RollingAverage peakLongAvg = new RollingAverage(10000/20);
+	RollingAverage totalLongAvg = new RollingAverage(10000/30);
+	RollingAverage peakLongAvg = new RollingAverage(10000/30);
 	
 	boolean flip = false;
 

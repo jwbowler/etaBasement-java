@@ -31,7 +31,7 @@ public class Letter implements SpectrumConsumer {
 	OutputControllerPanel outControl;
 	FrequencyControllerPanel freqControl;
 	
-	int DELAY_MILLIS = 20;
+	int DELAY_MILLIS = 30;
 	RollingAverage intensityAvg = new RollingAverage(6000/DELAY_MILLIS);
 	RollingAverage colorLongAvg = new RollingAverage(30000/DELAY_MILLIS);
 	RollingAverage colorShortAvg = new RollingAverage(4000/DELAY_MILLIS);
@@ -105,8 +105,9 @@ public class Letter implements SpectrumConsumer {
 				hue = p.hueStart + (range*trend);	
 			}
 
-			double percent = 0.5;
-			float sat = (float)Math.min(1.0, (1-out)/(1-percent));
+			double percent = 0.75;
+			double end = 1.5;
+			float sat = (float)Math.min(1.0, (end-out)/(end-percent));
 			float val = (float)Math.min(1.0, out/(percent));
 			
 			//System.out.println("TREND: " + hue + " " + sat + " " + val);
@@ -276,9 +277,9 @@ public class Letter implements SpectrumConsumer {
 	public synchronized byte[] getTransmittableColorData() {
 		byte out[] = new byte[3];
 		if (outputColor != null) {
-			out[0] = (byte) outputColor.getRed();
+			out[0] = (byte) outputColor.getBlue();
 			out[1] = (byte) outputColor.getGreen();
-			out[2] = (byte) outputColor.getBlue();
+			out[2] = (byte) outputColor.getRed();
 			for (int i = 0; i < 3; i++) {
 				if (out[i] == (byte) 255) {
 					out[i] = (byte) 254;

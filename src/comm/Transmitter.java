@@ -102,6 +102,8 @@ public class Transmitter extends Thread {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			
+			
 		}
 	}
 
